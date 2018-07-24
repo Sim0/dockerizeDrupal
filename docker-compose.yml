@@ -38,7 +38,7 @@ services:
 #      PHP_XDEBUG_REMOTE_HOST: 10.254.254.254 # macOS, Docker < 18.03
 #      PHP_XDEBUG_REMOTE_HOST: 10.0.75.1 # Windows, Docker < 18.03
     volumes:
-      - ../:/var/www/html
+      - $PROJECT_PATH/:/var/www/html
 ## For macOS users (https://wodby.com/stacks/drupal/docs/local/docker-for-mac/)
 #      - ./:/var/www/html:cached # User-guided caching
 #      - docker-sync:/var/www/html # Docker-sync
@@ -58,7 +58,7 @@ services:
       NGINX_SERVER_ROOT: /var/www/html
 #      NGINX_DRUPAL_FILE_PROXY_URL: http://example.com
     volumes:
-      - ../:/var/www/html
+      - $PROJECT_PATH:/var/www/html
 # For macOS users (https://wodby.com/stacks/drupal/docs/local/docker-for-mac/)
 #      - ./:/var/www/html:cached # User-guided caching
 #      - docker-sync:/var/www/html # Docker-sync
@@ -119,6 +119,25 @@ services:
 #      - '8080:8080' # Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+  elasticsearch:
+    image: wodby/elasticsearch:$ELASTICSEARCH_TAG
+    environment:
+      cluster.name: "base-cluster"
+      ES_JAVA_OPTS: "-Xms500m -Xmx500m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  kibana:
+    image: wodby/kibana:$KIBANA_TAG
+    depends_on:
+      - elasticsearch
+    labels:
+      - 'traefik.backend=kibana'
+      - 'traefik.port=5601'
+      - 'traefik.frontend.rule=Host:kibana.${PROJECT_BASE_URL}'
 
 #volumes:
 ## Docker-sync for macOS users
